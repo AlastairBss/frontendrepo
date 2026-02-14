@@ -1,0 +1,20 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - echo Logging in to Amazon ECR
+      - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 326963733272.dkr.ecr.us-east-1.amazonaws.com/frontend-service
+
+  build:
+    commands:
+      - echo Building Docker image
+      - docker build -t backend .
+      - docker tag backend:latest 326963733272.dkr.ecr.us-east-1.amazonaws.com/frontend-service:latest
+
+  post_build:
+    commands:
+      - echo Pushing image
+      - docker push 326963733272.dkr.ecr.us-east-1.amazonaws.com/frontend-service:latest
+      - echo Deploying to ECS
+      - aws ecs update-service --cluster prod-cluster --service backendrepo-task-service --force-new-deployment
